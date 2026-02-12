@@ -9,4 +9,8 @@ class BoatImage extends Model
 {
     /** @use HasFactory<\Database\Factories\BoatImageFactory> */
     use HasFactory;
+    protected $fillable = [
+        'path',
+        'is_thumbnail'
+    ];
 }

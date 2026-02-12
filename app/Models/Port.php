@@ -9,4 +9,10 @@ class Port extends Model
 {
     /** @use HasFactory<\Database\Factories\PortFactory> */
     use HasFactory;
+    protected $fillable = [
+        'name',
+        'city',
+        'longtitude',
+        'latitude',
+    ];
 }

@@ -18,7 +18,7 @@ class Boat extends Model
         'price_per_night',
         'is_active',
         'type',
-        'yaer_built',
+        'year_built',
         'width',
         'length',
         'draft'

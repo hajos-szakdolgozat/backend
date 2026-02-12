@@ -9,4 +9,8 @@ class Amenity extends Model
 {
     /** @use HasFactory<\Database\Factories\AmenityFactory> */
     use HasFactory;
+    protected $fillable = [
+        'name',
+        'description'
+    ];
 }
