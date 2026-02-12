@@ -19,9 +19,16 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'avatar_path',
         'email',
         'password',
+        'avatar_path',
+        'role',
+        'phone_number',
+        'email_verified_at',
+    ];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'phone_number' => 'integer',
     ];
 
     /**
