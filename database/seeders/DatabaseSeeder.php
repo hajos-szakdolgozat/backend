@@ -21,11 +21,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        $user = User::firstWhere('email', 'test@example.com')
+        $testUser = User::firstWhere('email', 'test@example.com')
             ?? User::factory()->create([
                 'name' => 'Test User',
                 'email' => 'test@example.com',
             ]);
+
+        $users = collect([$testUser])->merge(User::factory()->count(9)->create())->values();
 
         $ports = Port::factory()->count(6)->create();
 
@@ -48,14 +50,21 @@ class DatabaseSeeder extends Seeder
             ->map(fn(array $item) => Amenity::firstOrCreate(['name' => $item['name']], $item))
             ->values();
 
-        $boats = Boat::factory()
-            ->count(25)
-            ->for($user)
-            ->state(fn() => ['port_id' => $ports->random()->id])
-            ->create();
-
         $faker = fake();
         $now = now();
+
+        $owners = $users->shuffle()->take(5)->values();
+
+        $boats = collect();
+        foreach ($owners as $owner) {
+            $boats = $boats->merge(
+                Boat::factory()
+                    ->count($faker->numberBetween(1, 5))
+                    ->for($owner)
+                    ->state(fn() => ['port_id' => $ports->random()->id])
+                    ->create()
+            );
+        }
 
         foreach ($boats as $boat) {
             $imagesCount = $faker->numberBetween(2, 4);
@@ -88,5 +97,26 @@ class DatabaseSeeder extends Seeder
 
             DB::table('boat_amenities')->insert($pivotRows);
         }
+
+        $reservationRows = [];
+        $statusOptions = ['pending', 'approved', 'rejected'];
+        $reservationCount = 80;
+
+        for ($i = 0; $i < $reservationCount; $i++) {
+            $start = $faker->dateTimeBetween('now', '+2 months');
+            $end = (clone $start)->modify('+' . $faker->numberBetween(1, 14) . ' days');
+
+            $reservationRows[] = [
+                'user_id' => $users->random()->id,
+                'boat_id' => $boats->random()->id,
+                'status' => $faker->randomElement($statusOptions),
+                'start_date' => $start->format('Y-m-d'),
+                'end_date' => $end->format('Y-m-d'),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::table('reservations')->insert($reservationRows);
     }
 }

@@ -12,8 +12,14 @@ class Reservation extends Model
     protected $fillable = [
         'user_id',
         'boat_id',
+        'status',
         'start_date',
         'end_date',
 
     ];
+
+    public function boat()
+    {
+        return $this->belongsTo(Boat::class);
+    }
 }

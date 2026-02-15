@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BoatController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,5 +27,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [BoatController::class, 'store']);
         Route::put('{boat}', [BoatController::class, 'update']);
         Route::delete('{boat}', [BoatController::class, 'destroy']);
+    });
+
+    // foglalások
+    Route::prefix('reservations')->group(function () {
+        Route::get('/', [ReservationController::class, 'index']);
+        Route::get('/mine', [ReservationController::class, 'myReservations']);
+        Route::post('/', [ReservationController::class, 'store']);
     });
 });
