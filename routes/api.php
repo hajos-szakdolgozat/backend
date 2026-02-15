@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('reservations')->group(function () {
         Route::get('/', [ReservationController::class, 'index']);
         Route::get('/mine', [ReservationController::class, 'myReservations']);
+        Route::get('/mine/{id}', [ReservationController::class, 'myReservation']);
         Route::post('/', [ReservationController::class, 'store']);
     });
 });

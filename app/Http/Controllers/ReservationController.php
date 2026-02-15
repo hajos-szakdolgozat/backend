@@ -9,18 +9,34 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with('boat')->get();
+        $reservations = Reservation::with(['boat.boatImages'])->get();
 
         return response()->json($reservations, 200);
     }
 
     public function myReservations(Request $request)
     {
-        $reservations = Reservation::with('boat')
+        $reservations = Reservation::with(['boat.boatImages'])
             ->where('user_id', $request->user()->id)
             ->get();
 
         return response()->json($reservations, 200);
+    }
+
+    public function myReservation(Request $request, $id)
+    {
+        $reservation = Reservation::with(['boat.boatImages'])
+            ->where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'Reservation not found'
+            ], 404);
+        }
+
+        return response()->json($reservation, 200);
     }
 
     public function store(Request $request)
