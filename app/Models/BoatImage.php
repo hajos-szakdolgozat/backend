@@ -10,7 +10,17 @@ class BoatImage extends Model
     /** @use HasFactory<\Database\Factories\BoatImageFactory> */
     use HasFactory;
     protected $fillable = [
+        'boat_id',
         'path',
         'is_thumbnail'
     ];
+
+    protected $casts = [
+        'is_thumbnail' => 'boolean',
+    ];
+
+    public function boat()
+    {
+        return $this->belongsTo(Boat::class);
+    }
 }

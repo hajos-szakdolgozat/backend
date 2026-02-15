@@ -9,14 +9,14 @@ class BoatController extends Controller
 {
     public function index()
     {
-        $boats = Boat::with(['user', 'port'])->get();
+        $boats = Boat::with(['user', 'port', 'boatImages'])->get();
 
         return response()->json($boats, 200);
     }
 
     public function show($id)
     {
-        $boat = Boat::with(['user', 'port'])->find($id);
+        $boat = Boat::with(['user', 'port', 'boatImages'])->find($id);
 
         if (!$boat) {
             return response()->json([

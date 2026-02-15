@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Amenity;
+use App\Models\Boat;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,8 @@ class BoatAmenityFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'boat_id' => Boat::factory(),
+            'amenity_id' => Amenity::factory(),
         ];
     }
 }

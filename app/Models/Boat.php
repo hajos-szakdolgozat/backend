@@ -43,4 +43,9 @@ class Boat extends Model
     {
         return $this->belongsTo(Port::class);
     }
+
+    public function boatImages()
+    {
+        return $this->hasMany(BoatImage::class);
+    }
 }

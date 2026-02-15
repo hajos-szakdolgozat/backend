@@ -17,7 +17,8 @@ class BoatImageFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'path' => 'boats/' . $this->faker->uuid() . '.jpg',
+            'is_thumbnail' => $this->faker->boolean(25),
         ];
     }
 }

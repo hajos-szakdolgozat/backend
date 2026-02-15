@@ -17,7 +17,10 @@ class PortFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => 'Port of ' . $this->faker->city(),
+            'city' => $this->faker->city(),
+            'longitude' => $this->faker->longitude(),
+            'latitude' => $this->faker->latitude(),
         ];
     }
 }
