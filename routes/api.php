@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\AmenityController;
+use App\Http\Controllers\BoatAmenityController;
 use App\Http\Controllers\BoatController;
+use App\Http\Controllers\BoatImageController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\PortController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,8 +18,15 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 
+//apiResource-> létrehozza a route-okat (GET, POST stb)
+Route::apiResource('transactions', TransactionController::class);
+Route::apiResource('ports', PortController::class);
+Route::apiResource('amenities', AmenityController::class);
 
-
+// Pivot table – csak index, store, destroy
+Route::get('boat-amenities', [BoatAmenityController::class, 'index']);
+Route::post('boat-amenities', [BoatAmenityController::class, 'store']);
+Route::delete('boat-amenities/{boatAmenity}', [BoatAmenityController::class, 'destroy']);
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -47,6 +59,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('{boat}', [BoatController::class, 'destroy']);
         //értékelések
         Route::get('{id}/reviews', [ReviewController::class, 'boatReviews']);
+        //képek
+        Route::post('/', [BoatImageController::class, 'store']);
+        Route::delete('/{imageId}', [BoatImageController::class, 'destroy']);
     });
 
     // foglalások
