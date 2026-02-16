@@ -13,9 +13,8 @@ class Amenity extends Model
         'name',
         'description'
     ];
-
-    public function boats()
+    public function boatAmenities()
     {
-        return $this->belongsToMany(Boat::class, 'boat_amenities');
+        return $this->hasMany(BoatAmenity::class);
     }
 }
