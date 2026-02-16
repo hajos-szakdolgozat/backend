@@ -3,6 +3,7 @@
 use App\Http\Controllers\BoatController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    //értékelés létrehozása
+    Route::post('reviews', [ReviewController::class, 'store']);
 
     // felhasználók
     Route::prefix('users')->group(function () {
@@ -24,6 +27,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('{id}', [UserController::class, 'show']);
         Route::put('{id}', [UserController::class, 'update']);
         Route::delete('{id}', [UserController::class, 'destroy']);
+        //értékelések
+        Route::get('{id}/reviews', [ReviewController::class, 'userReviews']);
     });
 
     //kedvencek
@@ -40,6 +45,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [BoatController::class, 'store']);
         Route::put('{boat}', [BoatController::class, 'update']);
         Route::delete('{boat}', [BoatController::class, 'destroy']);
+        //értékelések
+        Route::get('{id}/reviews', [ReviewController::class, 'boatReviews']);
     });
 
     // foglalások
