@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BoatController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -13,13 +14,23 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 
 
+
+
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // felhasználók
     Route::prefix('users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
         Route::get('{id}', [UserController::class, 'show']);
         Route::put('{id}', [UserController::class, 'update']);
         Route::delete('{id}', [UserController::class, 'destroy']);
+    });
+
+    //kedvencek
+    Route::prefix('favorites')->group(function () {
+        Route::get('/', [FavoriteController::class, 'index']);
+        Route::post('{boatId}', [FavoriteController::class, 'store']);
+        Route::delete('{boatId}', [FavoriteController::class, 'destroy']);
     });
 
     // hajók

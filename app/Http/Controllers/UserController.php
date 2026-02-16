@@ -9,6 +9,12 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        $users = User::all(); // lekérdezi az összes felhasználót
+
+        return response()->json($users);
+    }
     public function show($id)
     {
         $user = User::find($id);
