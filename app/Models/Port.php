@@ -20,4 +20,8 @@ class Port extends Model
         'longitude' => 'float',
         'latitude' => 'float',
     ];
+    public function boats()
+    {
+        return $this->hasMany(Boat::class);
+    }
 }

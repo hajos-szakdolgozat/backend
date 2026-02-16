@@ -18,6 +18,20 @@ class Reservation extends Model
 
     ];
 
+    //Reservations időintervallumának átfedésének tiltása
+    public static function checkOverlap($boatId, $startDate, $endDate)
+    {
+        return self::where('boat_id', $boatId)
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            })->exists();
+    }
+
     public function boat()
     {
         return $this->belongsTo(Boat::class);

@@ -9,4 +9,15 @@ class Transaction extends Model
 {
     /** @use HasFactory<\Database\Factories\TransactionFactory> */
     use HasFactory;
+    protected $fillable = [
+        'reservation_id',
+        'amount',
+        'status',
+        'payment_method'
+    ];
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
+    }
 }

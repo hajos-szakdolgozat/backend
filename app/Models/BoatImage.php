@@ -14,6 +14,9 @@ class BoatImage extends Model
         'path',
         'is_thumbnail'
     ];
+    public static $rules = [
+        'path' => 'required|string',
+    ];
 
     protected $casts = [
         'is_thumbnail' => 'boolean',
