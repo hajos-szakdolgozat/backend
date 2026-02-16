@@ -48,4 +48,8 @@ class Boat extends Model
     {
         return $this->hasMany(BoatImage::class);
     }
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'boat_amenities');
+    }
 }
