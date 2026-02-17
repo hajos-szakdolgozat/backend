@@ -14,6 +14,8 @@ class BoatImage extends Model
         'path',
         'is_thumbnail'
     ];
+
+    //megszorítás
     public static $rules = [
         'path' => 'required|string',
     ];

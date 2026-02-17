@@ -16,12 +16,11 @@ class Review extends Model
     ];
 
 
-
-
     protected $casts = [
         'rating' => 'integer',
-    ];
+    ];  
 
+    //megszorítás
     public static $rules = [
         'rating' => 'required|integer|min:1|max:5',
     ];

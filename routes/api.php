@@ -18,7 +18,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 
-//apiResource-> létrehozza a route-okat (GET, POST stb)
+//apiResource létrehozza a route-okat (GET, POST stb)
 Route::apiResource('transactions', TransactionController::class);
 Route::apiResource('ports', PortController::class);
 Route::apiResource('amenities', AmenityController::class);

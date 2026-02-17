@@ -17,6 +17,9 @@ return new class extends Migration
             $table->float('rating');
             $table->text('comment');
             $table->timestamps();
+
+
+            $table->unique('reservation_id');
         });
     }
 

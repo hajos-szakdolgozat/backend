@@ -32,6 +32,11 @@ class Reservation extends Model
             })->exists();
     }
 
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }   
+
     public function boat()
     {
         return $this->belongsTo(Boat::class);
