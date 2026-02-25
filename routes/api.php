@@ -17,31 +17,19 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('boats', [BoatController::class, 'index']);
+Route::get('boats/{boat}', [BoatController::class, 'show']);
+Route::get('boats/{id}/reviews', [ReviewController::class, 'boatReviews']);
 
-//apiResource létrehozza a route-okat (GET, POST stb)
-Route::apiResource('transactions', TransactionController::class);
-Route::apiResource('ports', PortController::class);
-Route::apiResource('amenities', AmenityController::class);
+Route::get('ports', [PortController::class, 'index']);
+Route::get('ports/{port}', [PortController::class, 'show']);
 
-// Pivot table – csak index, store, destroy
-Route::get('boat-amenities', [BoatAmenityController::class, 'index']);
-Route::post('boat-amenities', [BoatAmenityController::class, 'store']);
-Route::delete('boat-amenities/{boatAmenity}', [BoatAmenityController::class, 'destroy']);
-
+Route::get('amenities', [AmenityController::class, 'index']);
+Route::get('amenities/{amenity}', [AmenityController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     //értékelés létrehozása
     Route::post('reviews', [ReviewController::class, 'store']);
-
-    // felhasználók
-    Route::prefix('users')->group(function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::get('{id}', [UserController::class, 'show']);
-        Route::put('{id}', [UserController::class, 'update']);
-        Route::delete('{id}', [UserController::class, 'destroy']);
-        //értékelések
-        Route::get('{id}/reviews', [ReviewController::class, 'userReviews']);
-    });
 
     //kedvencek
     Route::prefix('favorites')->group(function () {
@@ -50,25 +38,41 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('{boatId}', [FavoriteController::class, 'destroy']);
     });
 
-    // hajók
-    Route::prefix('boats')->group(function () {
-        Route::get('/', [BoatController::class, 'index']);
-        Route::get('{boat}', [BoatController::class, 'show']);
-        Route::post('/', [BoatController::class, 'store']);
-        Route::put('{boat}', [BoatController::class, 'update']);
-        Route::delete('{boat}', [BoatController::class, 'destroy']);
-        //értékelések
-        Route::get('{id}/reviews', [ReviewController::class, 'boatReviews']);
-        //képek
-        Route::post('/', [BoatImageController::class, 'store']);
-        Route::delete('/{imageId}', [BoatImageController::class, 'destroy']);
-    });
-
     // foglalások
     Route::prefix('reservations')->group(function () {
         Route::get('/', [ReservationController::class, 'index']);
         Route::get('/mine', [ReservationController::class, 'myReservations']);
         Route::get('/mine/{id}', [ReservationController::class, 'myReservation']);
         Route::post('/', [ReservationController::class, 'store']);
+    });
+
+    Route::middleware(['role:admin'])->group(function () {
+        // felhasználók
+        Route::prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::get('{id}', [UserController::class, 'show']);
+            Route::put('{id}', [UserController::class, 'update']);
+            Route::delete('{id}', [UserController::class, 'destroy']);
+            //értékelések
+            Route::get('{id}/reviews', [ReviewController::class, 'userReviews']);
+        });
+
+        // admin műveletek
+        Route::apiResource('transactions', TransactionController::class);
+        Route::apiResource('ports', PortController::class)->except(['index', 'show']);
+        Route::apiResource('amenities', AmenityController::class)->except(['index', 'show']);
+
+        Route::post('boats', [BoatController::class, 'store']);
+        Route::put('boats/{boat}', [BoatController::class, 'update']);
+        Route::delete('boats/{boat}', [BoatController::class, 'destroy']);
+
+        // Pivot table – csak admin módosíthat
+        Route::get('boat-amenities', [BoatAmenityController::class, 'index']);
+        Route::post('boat-amenities', [BoatAmenityController::class, 'store']);
+        Route::delete('boat-amenities/{boatAmenity}', [BoatAmenityController::class, 'destroy']);
+
+        // képek kezelése
+        Route::post('boat-images', [BoatImageController::class, 'store']);
+        Route::delete('boat-images/{imageId}', [BoatImageController::class, 'destroy']);
     });
 });

@@ -45,7 +45,7 @@ class UserController extends Controller
             'password' => 'sometimes|string|min:6',
             'avatar_path' => 'sometimes|string|max:255',
             'role' => 'sometimes|string|max:255',
-            'phone_number' => 'sometimes|numeric',
+            'phone_number' => ['sometimes', 'regex:/^\+?[0-9 ]{7,20}$/'],
             'email_verified_at' => 'sometimes|date',
         ]);
 
