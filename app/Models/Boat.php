@@ -19,6 +19,7 @@ class Boat extends Model
         'is_active',
         'type',
         'year_built',
+        'capacity',
         'width',
         'length',
         'draft'
@@ -28,6 +29,7 @@ class Boat extends Model
         'is_active' => 'boolean',
         'price_per_night' => 'integer',
         'year_built' => 'integer',
+        'capacity' => 'integer',
         'width' => 'float',
         'length' => 'float',
         'draft' => 'float',

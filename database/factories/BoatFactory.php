@@ -34,6 +34,7 @@ class BoatFactory extends Factory
                 'Speedboat',
             ]),
             'year_built' => $this->faker->numberBetween(1985, (int) date('Y')),
+            'capacity' => $this->faker->numberBetween(2, 16),
             'width' => $this->faker->randomFloat(1, 2.0, 10.0),
             'length' => $this->faker->randomFloat(1, 5.0, 60.0),
             'draft' => $this->faker->randomFloat(1, 0.5, 5.0),
