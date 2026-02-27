@@ -31,6 +31,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //értékelés létrehozása
     Route::post('reviews', [ReviewController::class, 'store']);
 
+    // hajó létrehozása minden bejelentkezett felhasználónak
+    Route::post('newBoat', [BoatController::class, 'store']);
+
     //kedvencek
     Route::prefix('favorites')->group(function () {
         Route::get('/', [FavoriteController::class, 'index']);
@@ -63,7 +66,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('ports', PortController::class)->except(['index', 'show']);
         Route::apiResource('amenities', AmenityController::class)->except(['index', 'show']);
 
-        Route::post('boats', [BoatController::class, 'store']);
         Route::put('boats/{boat}', [BoatController::class, 'update']);
         Route::delete('boats/{boat}', [BoatController::class, 'destroy']);
 
