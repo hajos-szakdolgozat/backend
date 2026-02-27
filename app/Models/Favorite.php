@@ -19,7 +19,7 @@ class Favorite extends Model
         'boat_id' => 'required|integer',
     ];
 
-    //Egy felhasználó egy hajót csak egyszer kedvencelhet, megszorítás
+    //Egy felhasználó csak egyszer adhat hozzá egy hajót a kedvencekhez, megszorítás
     public static function boot()
     {
         parent::boot();

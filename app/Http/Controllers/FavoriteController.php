@@ -50,4 +50,15 @@ class FavoriteController extends Controller
             'message' => 'Boat removed from favorites.'
         ]);
     }
+    public function myFavorites(Request $request)
+    {
+        $boatIds = Favorite::where('user_id', $request->user()->id)
+            ->pluck('boat_id');
+
+        $boats = \App\Models\Boat::with(['boatImages', 'port', 'user'])
+            ->whereIn('id', $boatIds)
+            ->get();
+
+        return response()->json($boats, 200);
+    }
 }

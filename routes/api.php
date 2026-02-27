@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [FavoriteController::class, 'index']);
         Route::post('{boatId}', [FavoriteController::class, 'store']);
         Route::delete('{boatId}', [FavoriteController::class, 'destroy']);
+        Route::get('/me', [FavoriteController::class, 'myFavorites']);
     });
 
     // foglalások
