@@ -30,11 +30,12 @@ class BoatController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            // user comes from authenticated token, not from payload
             'port_id' => 'required|exists:ports,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price_per_night' => 'required|integer|min:0',
+            'currency' => 'required|string|max:3',
             'is_active' => 'boolean',
             'type' => 'required|string|max:255',
             'year_built' => 'required|integer|min:1900',
@@ -44,7 +45,9 @@ class BoatController extends Controller
             'draft' => 'required|numeric|min:0',
         ]);
 
-        $boat = Boat::create($validated);
+        $boat = Boat::create(array_merge($validated, [
+            'user_id' => $request->user()->id,
+        ]));
         return response()->json($boat, 201);
     }
 
@@ -59,11 +62,11 @@ class BoatController extends Controller
             }
 
             $validated = $request->validate([
-                'user_id' => 'sometimes|exists:users,id',
                 'port_id' => 'sometimes|exists:ports,id',
                 'name' => 'sometimes|string|max:255',
                 'description' => 'nullable|string',
                 'price_per_night' => 'sometimes|integer|min:0',
+                'currency' => 'sometimes|string|max:3',
                 'is_active' => 'boolean',
                 'type' => 'sometimes|string|max:255',
                 'year_built' => 'sometimes|integer|min:1900',

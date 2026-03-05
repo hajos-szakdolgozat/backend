@@ -16,6 +16,7 @@ class Boat extends Model
         'name',
         'description',
         'price_per_night',
+        'currency',
         'is_active',
         'type',
         'year_built',
@@ -28,6 +29,7 @@ class Boat extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'price_per_night' => 'integer',
+        'currency' => 'string',
         'year_built' => 'integer',
         'capacity' => 'integer',
         'width' => 'float',

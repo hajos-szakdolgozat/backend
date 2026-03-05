@@ -24,6 +24,7 @@ class BoatFactory extends Factory
             'name' => $this->faker->words(3, true),
             'description' => $this->faker->paragraph(3),
             'price_per_night' => $this->faker->numberBetween(50, 1000),
+            'currency' => $this->faker->randomElement(['EUR', 'USD', 'HUF']),
             'is_active' => $this->faker->boolean(85),
             'type' => $this->faker->randomElement([
                 'Sailboat',
