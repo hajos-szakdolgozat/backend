@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(BalatonPortSeeder::class);
+
         // User::factory(10)->create();
 
         $testUser = User::firstWhere('email', 'test@example.com')
@@ -29,7 +31,11 @@ class DatabaseSeeder extends Seeder
 
         $users = collect([$testUser])->merge(User::factory()->count(9)->create())->values();
 
+        $balatonPort = Port::firstWhere('name', 'Balatoni kikoto');
         $ports = Port::factory()->count(6)->create();
+        if ($balatonPort) {
+            $ports = $ports->push($balatonPort);
+        }
 
         $amenityData = [
             ['name' => 'Wi-Fi', 'description' => 'Onboard internet access.'],
