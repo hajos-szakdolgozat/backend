@@ -43,12 +43,30 @@ class BoatController extends Controller
             'width' => 'required|numeric|min:0',
             'length' => 'required|numeric|min:0',
             'draft' => 'required|numeric|min:0',
+            'images' => 'sometimes|array|min:1',
+            'images.*' => 'image|max:5120',
+            'thumbnail_index' => 'sometimes|integer|min:0',
         ]);
 
         $boat = Boat::create(array_merge($validated, [
             'user_id' => $request->user()->id,
         ]));
-        return response()->json($boat, 201);
+
+        if ($request->hasFile('images')) {
+            $thumbnailIndex = (int) $request->input('thumbnail_index', 0);
+            $images = $request->file('images');
+
+            foreach ($images as $index => $imageFile) {
+                $path = $imageFile->store('boats', 'public');
+
+                $boat->boatImages()->create([
+                    'path' => $path,
+                    'is_thumbnail' => $index === $thumbnailIndex,
+                ]);
+            }
+        }
+
+        return response()->json($boat->load(['user', 'port', 'boatImages']), 201);
     }
 
     public function update(Request $request, $id)

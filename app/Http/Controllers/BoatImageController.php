@@ -27,30 +27,19 @@ class BoatImageController extends Controller
 
         $imageFile = $request->file('image');
 
-        // Ellenőrizzük, hogy a kép már létezik-e (hash alapján)
-        $hash = md5_file($imageFile->getRealPath());
-        $existingImage = $boat->images()->where('hash', $hash)->first();
-        if ($existingImage) {
-            return response()->json([
-                'message' => 'This image already exists for this boat.',
-                'data' => $existingImage
-            ], 409);
-        }
-
         $path = $imageFile->store('boats', 'public');
 
         // Ha is_thumbnail, akkor az összes többi thumbnail false lesz
         if ($request->has('is_thumbnail') && $request->is_thumbnail) {
-            $boat->images()->update(['is_thumbnail' => false]);
+            $boat->boatImages()->update(['is_thumbnail' => false]);
         }
 
         $boatImage = new BoatImage([
             'path' => $path,
-            'hash' => $hash,
             'is_thumbnail' => $request->has('is_thumbnail') ? $request->is_thumbnail : false
         ]);
 
-        $boat->images()->save($boatImage);
+        $boat->boatImages()->save($boatImage);
 
         return response()->json([
             'message' => 'Image uploaded successfully',
@@ -61,7 +50,7 @@ class BoatImageController extends Controller
     public function destroy($id, $imageId)
     {
         $boat = Boat::findOrFail($id);
-        $image = $boat->images()->findOrFail($imageId);
+        $image = $boat->boatImages()->findOrFail($imageId);
 
         if (Storage::disk('public')->exists($image->path)) {
             Storage::disk('public')->delete($image->path);

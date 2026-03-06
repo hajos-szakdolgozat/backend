@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->string('type');
             $table->integer('year_built');
+            $table->integer('capacity');
             $table->float('width');
             $table->float('length');
             $table->float('draft');

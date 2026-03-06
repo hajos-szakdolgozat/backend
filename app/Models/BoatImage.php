@@ -15,6 +15,10 @@ class BoatImage extends Model
         'is_thumbnail'
     ];
 
+    protected $appends = [
+        'image_url',
+    ];
+
     //megszorítás
     public static $rules = [
         'path' => 'required|string',
@@ -27,5 +31,14 @@ class BoatImage extends Model
     public function boat()
     {
         return $this->belongsTo(Boat::class);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->path);
     }
 }

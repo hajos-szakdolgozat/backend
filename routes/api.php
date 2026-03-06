@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // hajó létrehozása minden bejelentkezett felhasználónak
     Route::post('newBoat', [BoatController::class, 'store']);
+    Route::post('boats/{id}/images', [BoatImageController::class, 'store']);
 
     //kedvencek
     Route::prefix('favorites')->group(function () {
@@ -75,7 +76,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('boat-amenities/{boatAmenity}', [BoatAmenityController::class, 'destroy']);
 
         // képek kezelése
-        Route::post('boat-images', [BoatImageController::class, 'store']);
-        Route::delete('boat-images/{imageId}', [BoatImageController::class, 'destroy']);
+        Route::delete('boats/{id}/images/{imageId}', [BoatImageController::class, 'destroy']);
     });
 });
