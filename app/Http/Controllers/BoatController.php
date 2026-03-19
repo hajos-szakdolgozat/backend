@@ -7,9 +7,24 @@ use Illuminate\Http\Request;
 
 class BoatController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $boats = Boat::with(['user', 'port', 'boatImages'])->get();
+        $query = Boat::with(['user', 'port', 'boatImages']);
+
+        $capacity = $request->query('guests');
+        if ($capacity && is_numeric($capacity)) {
+            $query->where('capacity', '>=', (int) $capacity);
+        }
+
+        $location = $request->query('location');
+        if ($location) {
+            $query->whereHas('port', function ($q) use ($location) {
+                $q->where('name', 'like', "%{$location}%")
+                  ->orWhere('city', 'like', "%{$location}%");
+            });
+        }
+
+        $boats = $query->get();
 
         return response()->json($boats, 200);
     }
