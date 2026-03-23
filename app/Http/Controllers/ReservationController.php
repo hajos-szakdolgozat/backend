@@ -9,14 +9,14 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with(['boat.boatImages'])->get();
+        $reservations = Reservation::with(['boat.boatImages', 'review'])->get();
 
         return response()->json($reservations, 200);
     }
 
     public function myReservations(Request $request)
     {
-        $reservations = Reservation::with(['boat.boatImages'])
+        $reservations = Reservation::with(['boat.boatImages', 'review'])
             ->where('user_id', $request->user()->id)
             ->get();
 
@@ -25,7 +25,7 @@ class ReservationController extends Controller
 
     public function myReservation(Request $request, $id)
     {
-        $reservation = Reservation::with(['boat.boatImages'])
+        $reservation = Reservation::with(['boat.boatImages', 'review'])
             ->where('user_id', $request->user()->id)
             ->where('id', $id)
             ->first();
