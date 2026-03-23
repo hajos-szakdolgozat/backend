@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Reservation;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -55,5 +57,10 @@ class Boat extends Model
     public function boatAmenities()
     {
         return $this->hasMany(BoatAmenity::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasManyThrough(Review::class, Reservation::class);
     }
 }

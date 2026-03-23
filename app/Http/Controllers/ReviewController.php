@@ -30,10 +30,11 @@ class ReviewController extends Controller
             return response()->json(['message' => 'This reservation has already been reviewed.'], 422);
         }
 
-        $alreadyReviewedBoat = Review::whereHas('reservation', function ($query) use ($request, $reservation) {
-            $query->where('user_id', $request->user()->id)
-                ->where('boat_id', $reservation->boat_id);
-        })->exists();
+        $reservationIdsForBoat = Reservation::where('user_id', $request->user()->id)
+            ->where('boat_id', $reservation->boat_id)
+            ->pluck('id');
+
+        $alreadyReviewedBoat = Review::whereIn('reservation_id', $reservationIdsForBoat)->exists();
 
         if ($alreadyReviewedBoat) {
             return response()->json(['message' => 'You can only write one review per boat.'], 422);

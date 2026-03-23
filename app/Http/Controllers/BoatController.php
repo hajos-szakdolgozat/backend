@@ -9,7 +9,9 @@ class BoatController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Boat::with(['user', 'port', 'boatImages']);
+        $query = Boat::with(['user', 'port', 'boatImages'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
 
         $capacity = $request->query('guests');
         if ($capacity && is_numeric($capacity)) {
@@ -31,7 +33,10 @@ class BoatController extends Controller
 
     public function show($id)
     {
-        $boat = Boat::with(['user', 'port', 'boatImages'])->find($id);
+        $boat = Boat::with(['user', 'port', 'boatImages'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->find($id);
 
         if (!$boat) {
             return response()->json([
