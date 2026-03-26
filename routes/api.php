@@ -49,6 +49,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/mine', [ReservationController::class, 'myReservations']);
         Route::get('/mine/{id}', [ReservationController::class, 'myReservation']);
         Route::post('/', [ReservationController::class, 'store']);
+        Route::get('/myReservations/{id}', [ReservationController::class, 'reservationsByMe']);
+        Route::patch('/{id}/status', [ReservationController::class, 'updateStatus']);
     });
 
     Route::middleware(['role:admin'])->group(function () {

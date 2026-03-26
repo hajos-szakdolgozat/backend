@@ -38,6 +38,57 @@ class ReservationController extends Controller
 
         return response()->json($reservation, 200);
     }
+    public function reservationsByMe(Request $request, $id)
+    {
+        if ((int) $request->user()->id !== (int) $id) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        $reservations = Reservation::with(['boat.boatImages', 'review', 'user'])
+            ->whereHas('boat', function ($query) use ($id) {
+                $query->where('user_id', $id);
+            })
+            ->get();
+
+        return response()->json($reservations, 200);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $reservation = Reservation::with('boat')->find($id);
+
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'Reservation not found',
+            ], 404);
+        }
+
+        if (!$reservation->boat || (int) $reservation->boat->user_id !== (int) $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if ($reservation->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending reservations can be updated',
+            ], 422);
+        }
+
+        $reservation->status = $validated['status'];
+        $reservation->save();
+
+        return response()->json([
+            'message' => 'Reservation status updated successfully',
+            'reservation' => $reservation->fresh(['boat.boatImages', 'review', 'user']),
+        ], 200);
+    }
 
     public function store(Request $request)
     {
