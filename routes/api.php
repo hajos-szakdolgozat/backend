@@ -5,6 +5,7 @@ use App\Http\Controllers\BoatAmenityController;
 use App\Http\Controllers\BoatController;
 use App\Http\Controllers\BoatImageController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PortController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
@@ -18,6 +19,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::get('boats', [BoatController::class, 'index']);
+Route::middleware(['auth:sanctum'])->get('boats/mine', [BoatController::class, 'mine']);
 Route::get('boats/{boat}', [BoatController::class, 'show']);
 Route::get('boats/{id}/reviews', [ReviewController::class, 'boatReviews']);
 
@@ -38,6 +40,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('boats/{boat}', [BoatController::class, 'update']);
     Route::delete('boats/{boat}', [BoatController::class, 'destroy']);
     Route::post('boats/{id}/images', [BoatImageController::class, 'store']);
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
+    });
 
     //kedvencek
     Route::prefix('favorites')->group(function () {

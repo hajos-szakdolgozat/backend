@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Boat;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BoatController extends Controller
@@ -12,6 +13,28 @@ class BoatController extends Controller
         $query = Boat::with(['user', 'port', 'boatImages'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
+
+        $type = $request->query('type');
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        $minPrice = $request->query('min_price');
+        if ($minPrice !== null && is_numeric($minPrice)) {
+            $query->where('price_per_night', '>=', (int) $minPrice);
+        }
+
+        $maxPrice = $request->query('max_price');
+        if ($maxPrice !== null && is_numeric($maxPrice)) {
+            $query->where('price_per_night', '<=', (int) $maxPrice);
+        }
+
+        $active = $request->query('active');
+        if ($active === '1' || $active === 'true') {
+            $query->where('is_active', true);
+        } elseif ($active === '0' || $active === 'false') {
+            $query->where('is_active', false);
+        }
 
         $capacity = $request->query('guests');
         if ($capacity && is_numeric($capacity)) {
@@ -26,7 +49,43 @@ class BoatController extends Controller
             });
         }
 
+        $checkIn = $request->query('checkin');
+        $checkOut = $request->query('checkout');
+        if ($checkIn && $checkOut) {
+            $query->whereDoesntHave('reservations', function ($reservationQuery) use ($checkIn, $checkOut) {
+                $reservationQuery
+                    ->where('status', 'approved')
+                    ->where('start_date', '<', $checkOut)
+                    ->where('end_date', '>', $checkIn);
+            });
+        }
+
+        $sort = $request->query('sort');
+        if ($sort === 'price_asc') {
+            $query->orderBy('price_per_night');
+        } elseif ($sort === 'price_desc') {
+            $query->orderByDesc('price_per_night');
+        } elseif ($sort === 'rating_desc') {
+            $query->orderByDesc('reviews_avg_rating')->orderByDesc('reviews_count');
+        } elseif ($sort === 'newest') {
+            $query->latest();
+        } else {
+            $query->latest();
+        }
+
         $boats = $query->get();
+
+        return response()->json($boats, 200);
+    }
+
+    public function mine(Request $request)
+    {
+        $boats = Boat::with(['user', 'port', 'boatImages'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
 
         return response()->json($boats, 200);
     }
@@ -131,7 +190,7 @@ class BoatController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $boat = Boat::find($id);
+        $boat = Boat::with('reservations')->find($id);
 
         if (!$boat) {
             return response()->json([
@@ -147,6 +206,17 @@ class BoatController extends Controller
             return response()->json([
                 'message' => 'You are not allowed to delete this boat'
             ], 403);
+        }
+
+        $hasFutureReservations = $boat->reservations()
+            ->whereIn('status', ['pending', 'approved'])
+            ->whereDate('end_date', '>=', Carbon::today()->toDateString())
+            ->exists();
+
+        if ($hasFutureReservations) {
+            return response()->json([
+                'message' => 'This boat cannot be deleted because it has active or upcoming reservations.'
+            ], 422);
         }
 
         $boat->delete();

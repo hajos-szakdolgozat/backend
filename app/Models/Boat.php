@@ -63,4 +63,9 @@ class Boat extends Model
     {
         return $this->hasManyThrough(Review::class, Reservation::class);
     }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

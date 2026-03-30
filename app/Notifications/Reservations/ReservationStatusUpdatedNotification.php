@@ -18,7 +18,7 @@ class ReservationStatusUpdatedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -45,6 +45,33 @@ class ReservationStatusUpdatedNotification extends Notification
                 'startDate' => $this->formatDate($reservation->start_date),
                 'endDate' => $this->formatDate($reservation->end_date),
             ]);
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        $reservation = $this->reservation;
+        $isApproved = strtolower((string) $reservation->status) === 'approved';
+        $reservationsUrl = rtrim((string) config('app.frontend_url', 'http://localhost:5173'), '/').'/reservations';
+        $boatName = $reservation->boat?->name ?? 'Ismeretlen hajó';
+
+        return [
+            'title' => $isApproved ? 'Foglalás jóváhagyva' : 'Foglalás elutasítva',
+            'message' => sprintf(
+                'A(z) %s hajóra leadott foglalásod státusza %s lett (%s - %s).',
+                $boatName,
+                $isApproved ? 'jóváhagyva' : 'elutasítva',
+                $this->formatDate($reservation->start_date),
+                $this->formatDate($reservation->end_date),
+            ),
+            'action_url' => $reservationsUrl,
+            'action_label' => 'Foglalásaim',
+            'meta' => [
+                'reservation_id' => $reservation->id,
+                'boat_id' => $reservation->boat_id,
+                'boat_name' => $boatName,
+                'status' => $reservation->status,
+            ],
+        ];
     }
 
     private function formatDate(?string $date): string
