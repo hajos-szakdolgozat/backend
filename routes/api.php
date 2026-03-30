@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // hajó létrehozása minden bejelentkezett felhasználónak
     Route::post('newBoat', [BoatController::class, 'store']);
+    Route::put('boats/{boat}', [BoatController::class, 'update']);
     Route::post('boats/{id}/images', [BoatImageController::class, 'store']);
 
     //kedvencek
@@ -69,7 +70,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('ports', PortController::class)->except(['index', 'show']);
         Route::apiResource('amenities', AmenityController::class)->except(['index', 'show']);
 
-        Route::put('boats/{boat}', [BoatController::class, 'update']);
         Route::delete('boats/{boat}', [BoatController::class, 'destroy']);
 
         // Pivot table – csak admin módosíthat

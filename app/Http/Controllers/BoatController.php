@@ -90,34 +90,43 @@ class BoatController extends Controller
     }
 
     public function update(Request $request, $id)
-    { {
-            $boat = Boat::find($id);
+    {
+        $boat = Boat::find($id);
 
-            if (!$boat) {
-                return response()->json([
-                    'message' => 'Boat not found'
-                ], 404);
-            }
-
-            $validated = $request->validate([
-                'port_id' => 'sometimes|exists:ports,id',
-                'name' => 'sometimes|string|max:255',
-                'description' => 'nullable|string',
-                'price_per_night' => 'sometimes|integer|min:0',
-                'currency' => 'sometimes|string|max:3',
-                'is_active' => 'boolean',
-                'type' => 'sometimes|string|max:255',
-                'year_built' => 'sometimes|integer|min:1900',
-                'capacity' => 'sometimes|integer|min:1',
-                'width' => 'sometimes|numeric|min:0',
-                'length' => 'sometimes|numeric|min:0',
-                'draft' => 'sometimes|numeric|min:0',
-            ]);
-
-            $boat->update($validated);
-
-            return response()->json($boat, 200);
+        if (!$boat) {
+            return response()->json([
+                'message' => 'Boat not found'
+            ], 404);
         }
+
+        $currentUser = $request->user();
+        $isOwner = (int) $boat->user_id === (int) $currentUser->id;
+        $isAdmin = $currentUser->role === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            return response()->json([
+                'message' => 'You are not allowed to edit this boat'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'port_id' => 'sometimes|exists:ports,id',
+            'name' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'price_per_night' => 'sometimes|integer|min:0',
+            'currency' => 'sometimes|string|max:3',
+            'is_active' => 'boolean',
+            'type' => 'sometimes|string|max:255',
+            'year_built' => 'sometimes|integer|min:1900',
+            'capacity' => 'sometimes|integer|min:1',
+            'width' => 'sometimes|numeric|min:0',
+            'length' => 'sometimes|numeric|min:0',
+            'draft' => 'sometimes|numeric|min:0',
+        ]);
+
+        $boat->update($validated);
+
+        return response()->json($boat->load(['user', 'port', 'boatImages']), 200);
     }
 
     public function destroy($id)
