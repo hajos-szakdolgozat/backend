@@ -14,5 +14,5 @@ DockJet megnyitása
 Köszönjük, hogy csatlakoztál!
 
 Üdvözlettel,
-{{ $appName }} csapata
+DockJet csapata
 </x-mail::message>

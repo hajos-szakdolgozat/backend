@@ -16,11 +16,11 @@ Foglalásaim megnyitása
 </x-mail::button>
 
 @if ($isApproved)
-Jó utat kívánunk és köszönjük, hogy a {{ $appName }} platformot használod.
+Jó utat kívánunk és köszönjük, hogy a DockJet platformot használod.
 @else
 Kérjük, nézd meg a foglalásaidat, és válassz másik időpontot vagy másik hirdetést.
 @endif
 
 Üdvözlettel,
-{{ $appName }} csapata
+DockJet csapata
 </x-mail::message>
