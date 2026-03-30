@@ -29,7 +29,7 @@ class User extends Authenticatable
     ];
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'phone_number' => 'integer',
+        'phone_number' => 'string',
     ];
 
     /**

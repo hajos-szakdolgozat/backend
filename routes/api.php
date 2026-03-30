@@ -28,6 +28,8 @@ Route::get('amenities', [AmenityController::class, 'index']);
 Route::get('amenities/{amenity}', [AmenityController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('me', [UserController::class, 'updateMe']);
+
     //értékelés létrehozása
     Route::post('reviews', [ReviewController::class, 'store']);
 
