@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Notifications\Reservations\ReservationStatusUpdatedNotification;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -61,7 +62,7 @@ class ReservationController extends Controller
             'status' => 'required|in:approved,rejected',
         ]);
 
-        $reservation = Reservation::with('boat')->find($id);
+        $reservation = Reservation::with(['boat.user', 'user'])->find($id);
 
         if (!$reservation) {
             return response()->json([
@@ -83,6 +84,10 @@ class ReservationController extends Controller
 
         $reservation->status = $validated['status'];
         $reservation->save();
+
+        if ($reservation->user) {
+            $reservation->user->notify(new ReservationStatusUpdatedNotification($reservation));
+        }
 
         return response()->json([
             'message' => 'Reservation status updated successfully',

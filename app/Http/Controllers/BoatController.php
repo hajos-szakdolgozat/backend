@@ -129,7 +129,7 @@ class BoatController extends Controller
         return response()->json($boat->load(['user', 'port', 'boatImages']), 200);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $boat = Boat::find($id);
 
@@ -137,6 +137,16 @@ class BoatController extends Controller
             return response()->json([
                 'message' => 'Boat not found'
             ], 404);
+        }
+
+        $currentUser = $request->user();
+        $isOwner = (int) $boat->user_id === (int) $currentUser->id;
+        $isAdmin = $currentUser->role === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            return response()->json([
+                'message' => 'You are not allowed to delete this boat'
+            ], 403);
         }
 
         $boat->delete();
