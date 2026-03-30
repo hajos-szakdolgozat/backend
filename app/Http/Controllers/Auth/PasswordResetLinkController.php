@@ -6,14 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Validation\ValidationException;
 
 class PasswordResetLinkController extends Controller
 {
     /**
      * Handle an incoming password reset link request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): JsonResponse
     {
@@ -28,12 +25,12 @@ class PasswordResetLinkController extends Controller
             $request->only('email')
         );
 
-        if ($status != Password::RESET_LINK_SENT) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json(['status' => __($status)]);
         }
 
-        return response()->json(['status' => __($status)]);
+        return response()->json([
+            'status' => 'Ha létezik ilyen email cím, elküldtük a jelszó-visszaállító linket.',
+        ]);
     }
 }
