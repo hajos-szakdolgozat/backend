@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Boat;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class BoatController extends Controller
 {
@@ -188,15 +190,9 @@ class BoatController extends Controller
         return response()->json($boat->load(['user', 'port', 'boatImages']), 200);
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, Boat $boat)
     {
-        $boat = Boat::with('reservations')->find($id);
-
-        if (!$boat) {
-            return response()->json([
-                'message' => 'Boat not found'
-            ], 404);
-        }
+        $boat->loadMissing(['boatImages', 'reservations']);
 
         $currentUser = $request->user();
         $isOwner = (int) $boat->user_id === (int) $currentUser->id;
@@ -208,18 +204,32 @@ class BoatController extends Controller
             ], 403);
         }
 
-        $hasFutureReservations = $boat->reservations()
-            ->whereIn('status', ['pending', 'approved'])
-            ->whereDate('end_date', '>=', Carbon::today()->toDateString())
-            ->exists();
+        if (!$isAdmin) {
+            $hasFutureReservations = $boat->reservations()
+                ->whereIn('status', ['pending', 'approved'])
+                ->whereDate('end_date', '>=', Carbon::today()->toDateString())
+                ->exists();
 
-        if ($hasFutureReservations) {
-            return response()->json([
-                'message' => 'This boat cannot be deleted because it has active or upcoming reservations.'
-            ], 422);
+            if ($hasFutureReservations) {
+                return response()->json([
+                    'message' => 'This boat cannot be deleted because it has active or upcoming reservations.'
+                ], 422);
+            }
         }
 
-        $boat->delete();
+        $imagePaths = $boat->boatImages
+            ->pluck('path')
+            ->filter()
+            ->values()
+            ->all();
+
+        DB::transaction(function () use ($boat) {
+            $boat->delete();
+        });
+
+        if ($imagePaths !== []) {
+            Storage::disk('public')->delete($imagePaths);
+        }
 
         return response()->json([
             'message' => 'Boat deleted successfully'
