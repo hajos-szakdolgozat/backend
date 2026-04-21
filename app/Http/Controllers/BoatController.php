@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Boat;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+=======
+use Illuminate\Support\Str;
+>>>>>>> f958af758c0f34e5ebfa0504da8874ddaaa381e4
 
 class BoatController extends Controller
 {
@@ -47,7 +51,28 @@ class BoatController extends Controller
         if ($location) {
             $query->whereHas('port', function ($q) use ($location) {
                 $q->where('name', 'like', "%{$location}%")
-                  ->orWhere('city', 'like', "%{$location}%");
+                    ->orWhere('city', 'like', "%{$location}%");
+            });
+        }
+
+        $amenities = $request->query('amenities', $request->query('amenities[]', []));
+        if (!is_array($amenities)) {
+            $amenities = [$amenities];
+        }
+
+        $amenities = array_values(array_unique(array_filter(array_map(function ($amenity) {
+            $rawValue = trim((string) $amenity);
+            if ($rawValue === '') {
+                return null;
+            }
+
+            $slug = Str::slug(Str::ascii($rawValue), '_');
+            return $slug !== '' ? $slug : null;
+        }, $amenities))));
+
+        foreach ($amenities as $amenitySlug) {
+            $query->whereHas('boatAmenities.amenity', function ($amenityQuery) use ($amenitySlug) {
+                $amenityQuery->where('slug', $amenitySlug);
             });
         }
 
@@ -94,7 +119,7 @@ class BoatController extends Controller
 
     public function show($id)
     {
-        $boat = Boat::with(['user', 'port', 'boatImages'])
+        $boat = Boat::with(['user', 'port', 'boatImages', 'boatAmenities.amenity'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->find($id);
@@ -127,11 +152,28 @@ class BoatController extends Controller
             'images' => 'sometimes|array|min:1',
             'images.*' => 'image|max:5120',
             'thumbnail_index' => 'sometimes|integer|min:0',
+            'amenities' => 'sometimes|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ]);
+
+        $amenityIds = [];
+        if (array_key_exists('amenities', $validated)) {
+            $amenityIds = array_values(array_unique(array_map(
+                'intval',
+                $validated['amenities'] ?? []
+            )));
+            unset($validated['amenities']);
+        }
 
         $boat = Boat::create(array_merge($validated, [
             'user_id' => $request->user()->id,
         ]));
+
+        if (!empty($amenityIds)) {
+            $boat->boatAmenities()->createMany(array_map(function ($amenityId) {
+                return ['amenity_id' => $amenityId];
+            }, $amenityIds));
+        }
 
         if ($request->hasFile('images')) {
             $thumbnailIndex = (int) $request->input('thumbnail_index', 0);
@@ -147,7 +189,7 @@ class BoatController extends Controller
             }
         }
 
-        return response()->json($boat->load(['user', 'port', 'boatImages']), 201);
+        return response()->json($boat->load(['user', 'port', 'boatImages', 'boatAmenities.amenity']), 201);
     }
 
     public function update(Request $request, $id)
@@ -183,11 +225,31 @@ class BoatController extends Controller
             'width' => 'sometimes|numeric|min:0.5|max:30',
             'length' => 'sometimes|numeric|min:2|max:120',
             'draft' => 'sometimes|numeric|min:0.1|max:15',
+            'amenities' => 'sometimes|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ]);
+
+        $amenityIds = null;
+        if (array_key_exists('amenities', $validated)) {
+            $amenityIds = array_values(array_unique(array_map(
+                'intval',
+                $validated['amenities'] ?? []
+            )));
+            unset($validated['amenities']);
+        }
 
         $boat->update($validated);
 
-        return response()->json($boat->load(['user', 'port', 'boatImages']), 200);
+        if ($amenityIds !== null) {
+            $boat->boatAmenities()->delete();
+            if (!empty($amenityIds)) {
+                $boat->boatAmenities()->createMany(array_map(function ($amenityId) {
+                    return ['amenity_id' => $amenityId];
+                }, $amenityIds));
+            }
+        }
+
+        return response()->json($boat->load(['user', 'port', 'boatImages', 'boatAmenities.amenity']), 200);
     }
 
     public function destroy(Request $request, Boat $boat)
