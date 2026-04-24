@@ -47,7 +47,7 @@ class BoatController extends Controller
         if ($location) {
             $query->whereHas('port', function ($q) use ($location) {
                 $q->where('name', 'like', "%{$location}%")
-                  ->orWhere('city', 'like', "%{$location}%");
+                    ->orWhere('city', 'like', "%{$location}%");
             });
         }
 
@@ -59,6 +59,17 @@ class BoatController extends Controller
                     ->where('status', 'approved')
                     ->where('start_date', '<', $checkOut)
                     ->where('end_date', '>', $checkIn);
+            });
+        }
+
+        $amenities = $request->query('amenities', []);
+        if (!is_array($amenities)) {
+            $amenities = array_filter(explode(',', (string) $amenities));
+        }
+        $amenities = array_filter(array_map('trim', $amenities));
+        foreach ($amenities as $slug) {
+            $query->whereHas('boatAmenities.amenity', function ($q) use ($slug) {
+                $q->where('slug', $slug)->orWhere('name', $slug);
             });
         }
 
@@ -94,7 +105,7 @@ class BoatController extends Controller
 
     public function show($id)
     {
-        $boat = Boat::with(['user', 'port', 'boatImages'])
+        $boat = Boat::with(['user', 'port', 'boatImages', 'boatAmenities.amenity'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->find($id);
@@ -127,11 +138,14 @@ class BoatController extends Controller
             'images' => 'sometimes|array|min:1',
             'images.*' => 'image|max:5120',
             'thumbnail_index' => 'sometimes|integer|min:0',
+            'amenities' => 'sometimes|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ]);
 
-        $boat = Boat::create(array_merge($validated, [
-            'user_id' => $request->user()->id,
-        ]));
+        $boat = Boat::create(array_merge(
+            collect($validated)->except('amenities')->all(),
+            ['user_id' => $request->user()->id]
+        ));
 
         if ($request->hasFile('images')) {
             $thumbnailIndex = (int) $request->input('thumbnail_index', 0);
@@ -147,7 +161,18 @@ class BoatController extends Controller
             }
         }
 
-        return response()->json($boat->load(['user', 'port', 'boatImages']), 201);
+        if (isset($validated['amenities'])) {
+            $amenityData = collect($validated['amenities'])
+                ->unique()
+                ->mapWithKeys(fn($amenityId) => [$amenityId => []])
+                ->all();
+            $boat->boatAmenities()->delete();
+            foreach (array_unique($validated['amenities']) as $amenityId) {
+                $boat->boatAmenities()->create(['amenity_id' => $amenityId]);
+            }
+        }
+
+        return response()->json($boat->load(['user', 'port', 'boatImages', 'boatAmenities.amenity']), 201);
     }
 
     public function update(Request $request, $id)
@@ -183,11 +208,20 @@ class BoatController extends Controller
             'width' => 'sometimes|numeric|min:0.5|max:30',
             'length' => 'sometimes|numeric|min:2|max:120',
             'draft' => 'sometimes|numeric|min:0.1|max:15',
+            'amenities' => 'sometimes|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ]);
 
-        $boat->update($validated);
+        $boat->update(collect($validated)->except('amenities')->all());
 
-        return response()->json($boat->load(['user', 'port', 'boatImages']), 200);
+        if (array_key_exists('amenities', $validated)) {
+            $boat->boatAmenities()->delete();
+            foreach (array_unique($validated['amenities']) as $amenityId) {
+                $boat->boatAmenities()->create(['amenity_id' => $amenityId]);
+            }
+        }
+
+        return response()->json($boat->load(['user', 'port', 'boatImages', 'boatAmenities.amenity']), 200);
     }
 
     public function destroy(Request $request, Boat $boat)

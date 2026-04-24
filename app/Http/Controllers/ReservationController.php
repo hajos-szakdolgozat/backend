@@ -29,7 +29,7 @@ class ReservationController extends Controller
 
     public function myReservation(Request $request, $id)
     {
-        $reservation = Reservation::with(['boat.boatImages', 'review'])
+        $reservation = Reservation::with(['boat.boatImages', 'boat.boatAmenities.amenity', 'review'])
             ->where('user_id', $request->user()->id)
             ->where('id', $id)
             ->first();
