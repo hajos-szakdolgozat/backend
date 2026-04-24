@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Amenity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AmenityController extends Controller
@@ -24,25 +25,56 @@ class AmenityController extends Controller
 
     private function ensureDefaultAmenities(): void
     {
+        if (!Schema::hasColumn('amenities', 'slug')) {
+            return;
+        }
+
+        $hasDescriptionColumn = Schema::hasColumn('amenities', 'description');
+
         foreach (self::DEFAULT_AMENITIES as $slug => $label) {
-            Amenity::query()->firstOrCreate(
-                ['slug' => $slug],
-                [
-                    'name' => $label,
-                    'description' => 'Alapértelmezett felszereltség',
-                ]
-            );
+            $attributes = ['slug' => $slug];
+            $values = ['name' => $label];
+
+            if ($hasDescriptionColumn) {
+                $values['description'] = 'Alapértelmezett felszereltség';
+            }
+
+            Amenity::query()->firstOrCreate($attributes, $values);
         }
     }
 
     public function index()
     {
+        $hasSlugColumn = Schema::hasColumn('amenities', 'slug');
+        $hasDescriptionColumn = Schema::hasColumn('amenities', 'description');
+
         $this->ensureDefaultAmenities();
 
+        $columns = ['id', 'name'];
+
+        if ($hasSlugColumn) {
+            $columns[] = 'slug';
+        }
+
+        if ($hasDescriptionColumn) {
+            $columns[] = 'description';
+        }
+
         return Amenity::query()
-            ->select(['id', 'slug', 'name', 'description'])
+            ->select($columns)
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function (Amenity $amenity) use ($hasSlugColumn, $hasDescriptionColumn) {
+                return [
+                    'id' => $amenity->id,
+                    'slug' => $hasSlugColumn
+                        ? $amenity->slug
+                        : $this->normalizeSlug((string) $amenity->name),
+                    'name' => $amenity->name,
+                    'description' => $hasDescriptionColumn ? $amenity->description : null,
+                ];
+            })
+            ->values();
     }
 
     public function store(Request $request)
@@ -54,19 +86,50 @@ class AmenityController extends Controller
 
         $name = trim((string) $validated['name']);
         $slug = $this->normalizeSlug($name);
+        $hasSlugColumn = Schema::hasColumn('amenities', 'slug');
+        $hasDescriptionColumn = Schema::hasColumn('amenities', 'description');
 
-        $existingAmenity = Amenity::query()->where('slug', $slug)->first();
+        $existingAmenity = Amenity::query()
+            ->when(
+                $hasSlugColumn,
+                fn ($query) => $query->where('slug', $slug),
+                fn ($query) => $query->where('name', $name)
+            )
+            ->first();
+
         if ($existingAmenity) {
-            return response()->json($existingAmenity, 200);
+            return response()->json([
+                'id' => $existingAmenity->id,
+                'slug' => $hasSlugColumn
+                    ? $existingAmenity->slug
+                    : $this->normalizeSlug((string) $existingAmenity->name),
+                'name' => $existingAmenity->name,
+                'description' => $hasDescriptionColumn ? $existingAmenity->description : null,
+            ], 200);
         }
 
-        $amenity = Amenity::create([
-            'slug' => $slug,
+        $payload = [
             'name' => $name,
-            'description' => $validated['description'] ?? 'Kézzel hozzáadott felszereltség',
-        ]);
+        ];
 
-        return response()->json($amenity, 201);
+        if ($hasSlugColumn) {
+            $payload['slug'] = $slug;
+        }
+
+        if ($hasDescriptionColumn) {
+            $payload['description'] = $validated['description'] ?? 'Kézzel hozzáadott felszereltség';
+        }
+
+        $amenity = Amenity::create($payload);
+
+        return response()->json([
+            'id' => $amenity->id,
+            'slug' => $hasSlugColumn
+                ? $amenity->slug
+                : $this->normalizeSlug((string) $amenity->name),
+            'name' => $amenity->name,
+            'description' => $hasDescriptionColumn ? $amenity->description : null,
+        ], 201);
     }
 
     public function show(Amenity $amenity)
@@ -84,9 +147,14 @@ class AmenityController extends Controller
         if (array_key_exists('name', $validated)) {
             $newName = trim((string) $validated['name']);
             $newSlug = $this->normalizeSlug($newName);
+            $hasSlugColumn = Schema::hasColumn('amenities', 'slug');
 
             $existsWithSameSlug = Amenity::query()
-                ->where('slug', $newSlug)
+                ->when(
+                    $hasSlugColumn,
+                    fn ($query) => $query->where('slug', $newSlug),
+                    fn ($query) => $query->where('name', $newName)
+                )
                 ->where('id', '!=', $amenity->id)
                 ->exists();
 
@@ -97,7 +165,14 @@ class AmenityController extends Controller
             }
 
             $validated['name'] = $newName;
-            $validated['slug'] = $newSlug;
+
+            if ($hasSlugColumn) {
+                $validated['slug'] = $newSlug;
+            }
+        }
+
+        if (!Schema::hasColumn('amenities', 'description')) {
+            unset($validated['description']);
         }
 
         $amenity->update($validated);
